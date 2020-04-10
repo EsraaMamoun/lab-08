@@ -7,4 +7,3 @@ CREATE TABLE locations (
     latitude NUMERIC(10, 7),
     longitude NUMERIC(10, 7)
   );
--- 5434

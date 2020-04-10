@@ -72,7 +72,8 @@ function errorHandler(error, request, response) {
 client.connect().then(() => {
     app.listen(PORT, () => {
         console.log(`My server is up and running on ${PORT}`);
-    }).catch(err => {
+    })
+    .catch(err => {
         throw new Error(`Startup Error: ${err}`);
     })
 });
