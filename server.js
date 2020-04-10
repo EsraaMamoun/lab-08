@@ -37,7 +37,7 @@ function locationHandler(request, response) {
     const city = request.query.city;
     const theDatabaseQuery = 'SELECT search_query, formatted_query, latitude, longitude FROM locations WHERE search_query LIKE $1'
     client.query(theDatabaseQuery, [city]).then((result) => {
-        if (result.rows.length !== 0) {
+        if (result.rows.length > 0) {
             response.status(200).json(result.rows[0]);
             
         } else {
@@ -46,7 +46,7 @@ function locationHandler(request, response) {
                 ).then((res) => {
                     const geoData = res.body;
                     const theLocation = new Location(city, geoData);
-                    const SQL = 'INSERT INTO locations(search_query, formatted_query, latitude, longitude) VALUES ($1, $2, $3, $4)';
+                    const SQL = 'INSERT INTO locations (search_query, formatted_query, latitude, longitude) VALUES ($1, $2, $3, $4) RETURNING *';
                     const theResults = [theLocation.search_query, theLocation.formatted_query, theLocation.latitude, theLocation.longitude];
                     client.query(SQL, theResults).then(result => {
                         response.status(200).json(theLocation);
