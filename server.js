@@ -37,43 +37,44 @@ function locationHandler(request, response) {
     const city = request.query.city;
     const theDatabaseQuery = 'SELECT search_query, formatted_query, latitude, longitude FROM locations WHERE search_query LIKE $1'
     client.query(theDatabaseQuery, [city]).then((result) => {
-        if (result.rows.length > 0) {
+        if (result.rows.length !== 0) {
             response.status(200).json(result.rows[0]);
+            
         } else {
             superagent(
                 `https://eu1.locationiq.com/v1/search.php?key=${process.env.GEOCODE_API_KEY}&q=${city}&format=json`
-            ).then((res) => {
-                const geoData = res.body;
-                const theLocation = new Location(city, geoData);
-                const SQL = 'INSERT INTO locations(search_query, formatted_query, latitude, longitude) VALUES ($1, $2, $3, $4)';
-                const theResults = [theLocation.search_query, theLocation.formatted_query, theLocation.latitude, theLocation.longitude];
-                client.query(SQL, theResults).then(result => {
-                    response.status(200).json(theLocation);
-                }).catch(err => {
-                    response.status(500).send(err);
-                })
-            }).catch((err) => {
-                errorHandler(err, request, response);
-            });
-        }
-    });
-}
+                ).then((res) => {
+                    const geoData = res.body;
+                    const theLocation = new Location(city, geoData);
+                    const SQL = 'INSERT INTO locations(search_query, formatted_query, latitude, longitude) VALUES ($1, $2, $3, $4)';
+                    const theResults = [theLocation.search_query, theLocation.formatted_query, theLocation.latitude, theLocation.longitude];
+                    client.query(SQL, theResults).then(result => {
+                        response.status(200).json(theLocation);
+                    }).catch(err => {
+                        response.status(500).send(err);
+                    })
+                }).catch((err) => {
+                    errorHandler(err, request, response);
+                });
+            }
+        });
+    }
 
 ////////////
-
-function notFoundHandler(request, response) {
-    response.status(404).send('Error, Status: 404');
-}
-function errorHandler(error, request, response) {
-    response.status(500).send(error);
-}
-
-
-client.connect().then(() => {
-    app.listen(PORT, () => {
-        console.log(`My server is up and running on ${PORT}`);
-    })
-    .catch(err => {
+    
+    function notFoundHandler(request, response) {
+        response.status(404).send('Error, Status: 404');
+    }
+    function errorHandler(error, request, response) {
+        response.status(500).send(error);
+    }
+    
+    
+    client.connect().then(() => {
+        app.listen(PORT, () => 
+            console.log(`My server is up and running on ${PORT}`)
+            );   
+        })
+        .catch(err => {
         throw new Error(`Startup Error: ${err}`);
     })
-});
